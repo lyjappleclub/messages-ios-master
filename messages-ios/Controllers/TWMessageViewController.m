@@ -24,6 +24,9 @@ CGFloat const kTWMessageViewControllerCellHeight = 50;
 @interface TWMessageViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>{
     NSArray *contentArr;
     NSMutableSet *cellSet;
+    NSInteger time;
+    
+    NSIndexPath *greenIndexPath;
 }
 
 @end
@@ -75,37 +78,62 @@ CGFloat const kTWMessageViewControllerCellHeight = 50;
 	[self.collectionView registerClass:[TWMessageViewCell class] forCellWithReuseIdentifier:kTWMessageViewControllerCellIdentifier];
     self.collectionView.delegate = self;
     self.collectionView.dataSource = self;
-    
-    
-    
-    
+    [self move];
     
 }
+
+-(void)move{
+    __weak TWMessageViewController *weak = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weak timeMove];
+        [weak move];
+    });
+}
+
+
+-(void)timeMove{
+    greenIndexPath = [NSIndexPath indexPathForItem:0 inSection:time];
+    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:greenIndexPath];
+    cell.contentView.backgroundColor = [UIColor greenColor];
+    [self.collectionView scrollToItemAtIndexPath:greenIndexPath atScrollPosition:UICollectionViewScrollPositionCenteredVertically animated:NO];
+    time++;
+    if(time <= [contentArr count] - 1){
+        
+    }else {
+        time = 0;
+    }
+    
+}
+
+
+
 
 #pragma mark - UICollectionView DataSource & Delegate methods
 
 -(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
 {
-    return 1;
+    return [contentArr count];
 }
 
 -(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return [contentArr count];
+    return 1;
 }
 
 -(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     TWMessageViewCell *cell = (TWMessageViewCell *)[collectionView dequeueReusableCellWithReuseIdentifier:kTWMessageViewControllerCellIdentifier forIndexPath:indexPath];
-    [cell setContent:[contentArr objectAtIndex:indexPath.row]];
+    [cell setContent:[contentArr objectAtIndex:indexPath.section]];
     [cellSet addObject:cell];
-    cell.contentView.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.5];
+    if(greenIndexPath==nil || [greenIndexPath compare:indexPath]!=NSOrderedSame){
+        cell.contentView.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.5];
+    }
 	return cell;
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *content = [contentArr objectAtIndex:indexPath.row];
+    NSString *content = [contentArr objectAtIndex:indexPath.section];
     CGRect rect = [NRBubbleFrame getFrameWithEnglishContent:content];
     return CGSizeMake(self.view.bounds.size.width - (kTWMessageViewControllerCellPadding*2), rect.size.height + rect.origin.y * 2);
 }
